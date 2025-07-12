@@ -15,3 +15,4 @@ pygame
 edge-tts
 PyQt5
 webdriver-manager
+chromedriver-autoinstaller
