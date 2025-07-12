@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: koragg-ai
+    env: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
