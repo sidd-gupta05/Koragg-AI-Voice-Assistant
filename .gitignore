@@ -213,6 +213,5 @@ __marimo__/
 .env.local
 .env.development.local
 
-/Data
 /myenv
 venv
