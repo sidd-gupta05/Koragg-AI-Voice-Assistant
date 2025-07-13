@@ -1,7 +1,7 @@
 ## 🔍 Koragg AI In Action
 
 ### 🎤 Voice Recognition UI
-![Koragg AI Voice Interface](./Data/screenshot_1.png")
+![Koragg AI Voice Interface](./Data/screenshot_1.png)
 
 ### 💬 Chat Interface & Voice Commands
 ![Koragg AI Chat Interface](./Data/screenshot_2.png)
