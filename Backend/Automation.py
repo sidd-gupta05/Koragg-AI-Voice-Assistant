@@ -248,17 +248,6 @@ def CloseApp(app):
             return False
         
 contacts = {
-    "siddharth": "8779032500",
-    "laksh": "9321471908",
-    "manas amare": "9769819875",
-    "yash bro": "8451042568",
-    "krrish": "8454066177",
-    "mummy": "9867353765",
-    "papa": "8689903314",
-    "vedanth": "9987602631",
-    "sandeep vishwakarma": "9920232578",
-    "puja kukade": "9890291263",
-    "harshada": "7039526506",
 }
 
 import pygetwindow as gw
