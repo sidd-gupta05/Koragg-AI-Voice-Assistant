@@ -1,3 +1,10 @@
+## 🔍 Koragg AI In Action
+
+### 🎤 Voice Recognition UI
+![Koragg AI Voice Interface](./assets/screenshot_1.png)
+
+### 💬 Chat Interface & Voice Commands
+![Koragg AI Chat Interface](./assets/screenshot_2.png)
 🔮 Koragg AI – Voice-Controlled Desktop Assistant
 Koragg AI is a smart, voice-activated personal assistant that empowers you to control your PC without lifting a finger. Built in Python, it seamlessly integrates voice recognition, browser automation, messaging, AI image generation, and chatbot features to simplify everyday tasks.
 
