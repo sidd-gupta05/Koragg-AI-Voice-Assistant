@@ -1,7 +1,7 @@
 ## 🔍 Koragg AI In Action
 
 ### 🎤 Voice Recognition UI
-![Koragg AI Voice Interface](."C:\Users\siddh\OneDrive\Desktop\screenshot_1.png")
+![Koragg AI Voice Interface](./assets/screenshot_1.png")
 
 ### 💬 Chat Interface & Voice Commands
 ![Koragg AI Chat Interface](./assets/screenshot_2.png)
