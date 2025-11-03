@@ -1,3 +1,4 @@
+# Backend/RealtimeSearchEngine.py
 from googlesearch import search
 from groq import Groq
 from json import load, dump
@@ -15,8 +16,16 @@ GroqAPIKey = env_vars.get("GroqAPIKey")
 client = Groq(api_key=GroqAPIKey)
 
 System = f"""Hello, I am {Username}, You are a very accurate and advanced AI chatbot named {Assistantname} which has real-time up-to-date information from the internet.
-*** Provide Answers In a Professional Way, make sure to add full stops, commas, question marks, and use proper grammar.***
-*** Just answer the question from the provided data in a professional way. ***"""
+
+*** IMPORTANT INSTRUCTIONS ***
+- Provide direct answers based on the search results
+- Do NOT tell users to search elsewhere or visit websites
+- Extract and summarize the information from the search results
+- If the search results contain price/stock information, provide the exact numbers
+- Answer in a professional way with proper grammar and punctuation
+- Be concise but informative
+- Only use the provided search results to answer the question
+"""
 
 try:
     with open(r"Data\ChatLog.json","r") as f:
@@ -41,6 +50,7 @@ def GoogleSearch(query):
         return Answer
     except Exception as e:
         return f"Search failed. Please try again later. Error: {str(e)}"
+
 
 def AnswerModifier(Answer):
     lines = Answer.split('\n')
@@ -82,7 +92,7 @@ def RealtimeSearchEngine(prompt):
     SystemChatBot.append({"role": "system", "content": GoogleSearch(prompt)})
 
     completion = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.1-8b-instant",
             messages = SystemChatBot + [{"role": "system", "content": Information()}] + messages,
             temperature=0.7,
             max_tokens=2048,

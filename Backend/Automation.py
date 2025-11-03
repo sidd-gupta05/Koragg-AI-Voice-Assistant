@@ -1,3 +1,4 @@
+#  Backend/Automation.py
 from AppOpener import close, open as appopen 
 from webbrowser import open as webopen
 # from pywhatkit import search, image_to_base64, take_screenshot_as_base64, playonyt, playony
@@ -62,7 +63,7 @@ def GetWeatherReport(location: str):
     """
     try:
         # First try to get coordinates if location is a city name
-        geo_url = f"http://api.openweathermapm.org/geo/1.0/direct?q={location}&limit=1&appid={WEATHER_API_KEY}"
+        geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={location}&limit=1&appid={WEATHER_API_KEY}"
         geo_response = requests.get(geo_url).json()
         
         if not geo_response:
@@ -177,7 +178,7 @@ def Content(Topic):
         messages.append ({"role": "user", "content": f'{prompt}'})
 
         completion = client.chat.completions.create(
-            model="llama3-70mb-8192",
+            model="llama-3.1-8b-instant",
             messages=SystemChatBot + messages,
             max_tokens=2048,
             temperature=0.7,
@@ -248,6 +249,7 @@ def CloseApp(app):
             return False
         
 contacts = {
+    "laksh": "9321471908",
 }
 
 import pygetwindow as gw
