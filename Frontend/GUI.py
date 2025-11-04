@@ -1,3 +1,4 @@
+# Frontend/GUI.py
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QStackedWidget,QWidget, QVBoxLayout, QVBoxLayout,QHBoxLayout,QPushButton, QLabel, QFrame, QSizePolicy
 from PyQt5.QtGui import QFont, QColor,QTextBlockFormat, QTextCharFormat, QIcon, QPixmap,QMovie,QPainter
 from PyQt5.QtCore import Qt, QTimer, QSize
