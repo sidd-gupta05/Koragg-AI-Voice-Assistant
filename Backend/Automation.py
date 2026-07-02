@@ -18,6 +18,7 @@ import time
 import psutil
 import requests
 from datetime import datetime
+import pygetwindow as gw
 
 
 env_vars = dotenv_values(".env")
@@ -251,8 +252,6 @@ def CloseApp(app):
 contacts = {
     "laksh": "9321471908",
 }
-
-import pygetwindow as gw
 
 def CallOnWhatsappByName(name: str, message: str = ""):
     name = name.lower().strip()

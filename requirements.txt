@@ -16,3 +16,10 @@ edge-tts
 PyQt5
 webdriver-manager
 chromedriver-autoinstaller
+torch
+torchvision
+torchaudio
+diffusers
+transformers
+accelerate
+safetensors
