@@ -215,3 +215,9 @@ __marimo__/
 
 /myenv
 venv
+
+.idea
+Data
+files
+
+Frontend/Files/

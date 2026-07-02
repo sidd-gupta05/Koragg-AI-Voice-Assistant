@@ -1,3 +1,4 @@
+import torch
 # Main.py
 from Frontend.GUI import(
     GraphicalUserInterface,
@@ -32,6 +33,7 @@ DefaultMessage = f'''{Username} : Hello {Assistantname}, How are you?
 {Assistantname} : Welcome {Username}. I am doing well thanks for asking. How may I help you?'''
 subprocesses = []
 image_generation_process = None
+image_generator = None
 Functions = ['open', "close", "play", "system", "content","google search", "youtube search", "screenshoot", "screenshot", "report", "message", "near me" ,"navigate to" ,"directions to","write", "draft", "compose", "make", "create", "type", "letter", "aplication",]
 
 def cleanup():
@@ -105,7 +107,7 @@ def MainExecution():
     ImageExecution = False
     ImageGenrationQuery = ""
 
-    if 'image_generator' not in globals():
+    if image_generator is None:
         image_generator = ImageGenerator()
     
     SetAssistantStatus("Listening...")
