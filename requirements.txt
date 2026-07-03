@@ -23,3 +23,8 @@ diffusers
 transformers
 accelerate
 safetensors
+ollama
+pygetwindow
+pyperclip
+pyautogui
+google-genai
