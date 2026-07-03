@@ -1,5 +1,5 @@
-import torch
 # Main.py
+import torch
 from Frontend.GUI import(
     GraphicalUserInterface,
     SetAssistantStatus,
@@ -18,6 +18,12 @@ from Backend.Chatbot import ChatBot
 from Backend.TextToSpeech import TextToSpeech
 from Backend.Automation import Automation
 from Backend.ImageGeneration import ImageGenerator
+from Backend.ScreenAgent import (
+    ScreenRead,
+    ScreenCode,
+    ScreenCodeExecute,
+    DetectLanguageFromScreen,
+)
 from dotenv import dotenv_values
 from asyncio import run
 from time import sleep
@@ -34,7 +40,165 @@ DefaultMessage = f'''{Username} : Hello {Assistantname}, How are you?
 subprocesses = []
 image_generation_process = None
 image_generator = None
-Functions = ['open', "close", "play", "system", "content","google search", "youtube search", "screenshoot", "screenshot", "report", "message", "near me" ,"navigate to" ,"directions to","write", "draft", "compose", "make", "create", "type", "letter", "aplication",]
+Functions = ['open', "close", "play", "system", "content","google search", "youtube search", "screenshoot", "screenshot", "report", "message", "near me" ,"navigate to" ,"directions to","write", "draft", "compose", "make", "create", "type", "letter", "aplication","screen read", "read screen", "what's on", "whats on","solve this", "code this", "fix this", "fix the bug", "debug this", "read the problem", "solve the problem", "what's wrong", "whats wrong", "screen code", "help me code",]
+
+def HandleScreenIntent(Query: str) -> bool:
+    """
+    Intercepts screen-reading and coding assistant commands before they
+    reach the DMM router. Returns True if handled, False to fall through.
+    """
+    query_lower = Query.lower().strip()
+ 
+    # ── Trigger lists ────────────────────────────────────────────────────────
+ 
+    read_triggers = [
+        "what's on my screen", "whats on my screen",
+        "read my screen", "read the screen",
+        "what does this say", "what is on screen",
+        "describe my screen", "what do you see",
+        "read this for me",
+    ]
+ 
+    solve_triggers = [
+        "solve this", "solve this problem", "solve the problem",
+        "code this", "code this for me", "write code for this",
+        "write the code", "type the code", "help me code",
+        "read the problem and solve", "read and solve", "screen code",
+        "read the whole files and solve", "read the whole file and solve"  # FIXED: Added your voice variant
+    ]
+ 
+    fix_triggers = [
+        "solve the bug", "solve this bug", "solve bugs",  # FIXED: Added your specific trigger variations
+        "fix this", "fix this bug", "fix the bug",
+        "debug this", "find the bug",
+        "what's wrong with my code", "whats wrong with my code",
+        "help fix", "fix my code", "there's a bug", "there is a bug",
+        "error in my code",
+    ]
+ 
+    is_read  = any(t in query_lower for t in read_triggers)
+    is_solve = any(t in query_lower for t in solve_triggers)
+    is_fix   = any(t in query_lower for t in fix_triggers)
+ 
+    if not (is_read or is_solve or is_fix):
+        return False   # not our command — let DMM handle it normally
+ 
+    # ── Extract user hint (anything said after the trigger phrase) ────────────
+    hint = ""
+    for trigger in solve_triggers + fix_triggers + read_triggers:
+        if trigger in query_lower:
+            remainder = query_lower.replace(trigger, "").strip(" ,.")
+            if len(remainder) > 3:
+                hint = remainder
+            break
+ 
+    # ── READ MODE ─────────────────────────────────────────────────────────────
+    if is_read and not is_solve and not is_fix:
+        SetAssistantStatus("Reading screen...")
+        answer = ScreenRead(user_question=hint if hint else "")
+        ShowTextToScreen(f"{Assistantname} : {answer}")
+        SetAssistantStatus("Answering...")
+        TextToSpeech(answer)
+        SetAssistantStatus("Available...")
+        return True
+ 
+    # ── CODING MODE ───────────────────────────────────────────────────────────
+    SetAssistantStatus("Reading screen...")
+ 
+    result = ScreenCode(
+        user_hint=hint,
+        language="",             # empty = auto-detect from screen
+        speak_fn=TextToSpeech    # so ScreenCode can speak the permission prompt
+    )
+ 
+    # ── PERMISSION GATE ───────────────────────────────────────────────────────
+    if not result.startswith("__PERMISSION_REQUIRED__"):
+        # ScreenCode returned a direct message (e.g. "not a coding screen")
+        ShowTextToScreen(f"{Assistantname} : {result}")
+        TextToSpeech(result)
+        SetAssistantStatus("Available...")
+        return True
+ 
+    # Parse the token:
+    # __PERMISSION_REQUIRED__|context_type|screen_data_json|user_hint|language
+    parts = result.split("|", 4)
+    context_type      = parts[1] if len(parts) > 1 else "browser_judge"
+    screen_data_json  = parts[2] if len(parts) > 2 else "{}"
+    user_hint_out     = parts[3] if len(parts) > 3 else hint
+    language_out      = parts[4] if len(parts) > 4 else "python"
+ 
+    # ── Listen for yes / no ───────────────────────────────────────────────────
+    SetAssistantStatus("Waiting for your confirmation...")
+    try:
+        permission_response = SpeechRecognization()
+    except Exception:
+        permission_response = ""
+ 
+    permission_response = (permission_response or "").lower().strip()
+ 
+    yes_words = [
+        "yes", "yeah", "sure", "go ahead", "proceed",
+        "do it", "ok", "okay", "yep", "yup", "please",
+        "affirmative", "go", "do that", "yes please",
+    ]
+    no_words = [
+        "no", "nope", "cancel", "stop", "don't",
+        "never mind", "nevermind", "negative", "abort", "exit",
+    ]
+ 
+    user_said_yes = any(w in permission_response for w in yes_words)
+    user_said_no  = any(w in permission_response for w in no_words)
+ 
+    if user_said_no or (not user_said_yes):
+        msg = "Understood sir, cancelling."
+        ShowTextToScreen(f"{Assistantname} : {msg}")
+        TextToSpeech(msg)
+        SetAssistantStatus("Available...")
+        return True
+ 
+    # ── User confirmed — execute ───────────────────────────────────────────────
+    SetAssistantStatus("Generating solution...")
+    TextToSpeech("Got it sir, working on it now.")
+ 
+    final_result = ScreenCodeExecute(
+        context_type  = context_type,
+        screen_desc   = screen_data_json,   # JSON string
+        user_hint     = user_hint_out,
+        language      = language_out,
+        clipboard_code= "",                  
+    )
+ 
+    # Show full code on Koragg screen, speak only the summary sentence
+    ShowTextToScreen(f"{Assistantname} : {final_result}")
+    SetAssistantStatus("Answering...")
+ 
+    # Speak only the first non-code sentence (the human-readable status line)
+    spoken = final_result.split("\n")[0] if final_result else "Done."
+    TextToSpeech(spoken)
+    SetAssistantStatus("Available...")
+    return True
+
+def HandleCreatorIntent(Query: str) -> bool:
+    """
+    Intercepts questions about Koragg's creator and returns a hardcoded response.
+    """
+    query_lower = Query.lower().strip()
+    
+    creator_triggers = [
+        "who created you", "who made you", "who is your boss", 
+        "who developed you", "who is your creator", "who programmed you"
+    ]
+    
+    if any(t in query_lower for t in creator_triggers):
+        answer = "I was created by my Boss, Siddharth."
+        
+        SetAssistantStatus("Answering...")
+        ShowTextToScreen(f"{Assistantname} : {answer}")
+        TextToSpeech(answer)
+        SetAssistantStatus("Available...")
+        return True
+        
+    return False
 
 def cleanup():
     """Cleanup function to terminate subprocesses on exit"""
@@ -122,6 +286,14 @@ def MainExecution():
         return False
     
     ShowTextToScreen(f"{Username}: {Query}")
+
+    if HandleScreenIntent(Query):
+        SetAssistantStatus("Available...")
+        return True
+
+    if HandleCreatorIntent(Query):
+        return True
+    
     SetAssistantStatus("Thinking...")
     Decision = FirstLayerDMM(Query)
 
