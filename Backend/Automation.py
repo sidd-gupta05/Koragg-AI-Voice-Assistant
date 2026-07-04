@@ -19,6 +19,7 @@ import psutil
 import requests
 from datetime import datetime
 import pygetwindow as gw
+import re
 
 
 env_vars = dotenv_values(".env")
@@ -304,13 +305,50 @@ def SearchOnGoogleMaps(place: str):
     webbrowser.open(url)
     return True
 
+def AdjustVolumeByPercentage(query: str):
+    """
+    Extracts the percentage from the voice command and loops the 
+    Windows volume keystroke to match the requested amount.
+    """
+    query_lower = query.lower()
+    
+    # Search the text for any digits (e.g., pulls "20" out of "increase by 20 percent")
+    numbers = re.findall(r'\d+', query_lower)
+    
+    if numbers:
+        percentage = int(numbers[0])
+        # Calculate how many times to press the key (since 1 press = 2%)
+        presses = percentage // 2
+        
+        if "increase" in query_lower or "up" in query_lower:
+            for _ in range(presses):
+                pyautogui.press('volumeup')
+                time.sleep(0.02)  # Tiny delay so Windows registers every single press
+            return f"Increased volume by {percentage} percent."
+            
+        elif "reduce" in query_lower or "decrease" in query_lower or "down" in query_lower:
+            for _ in range(presses):
+                pyautogui.press('volumedown')
+                time.sleep(0.02)
+            return f"Reduced volume by {percentage} percent."
+    else:
+        # Fallback if you just say "increase volume" without specifying a number
+        if "increase" in query_lower or "up" in query_lower:
+            pyautogui.press('volumeup')
+            return "Increased volume slightly."
+        elif "reduce" in query_lower or "decrease" in query_lower or "down" in query_lower:
+            pyautogui.press('volumedown')
+            return "Reduced volume slightly."
+            
+    return "Volume command not recognized."
+
 def System(command):
 
     def mute():
         keyboard.press_and_release("volume mute")
 
     def unmute():
-        keyboard.press_and_release("volume unmute")
+        keyboard.press_and_release("volume mute")
 
     def volume_up():
         keyboard.press_and_release("volume up")
@@ -340,10 +378,8 @@ async def TranslateAndExecute(commands: list[str]):
                 funcs.append(asyncio.to_thread(System, "mute"))
             elif "unmute" in command:
                 funcs.append(asyncio.to_thread(System, "unmute"))
-            elif "increase" in command or "up" in command:
-                funcs.append(asyncio.to_thread(System, "volume_up"))
-            elif "decrease" in command or "down" in command:
-                funcs.append(asyncio.to_thread(System, "volume_down"))
+            elif any(word in command for word in ["increase", "up", "decrease", "down", "reduce"]):
+                funcs.append(asyncio.to_thread(AdjustVolumeByPercentage, command))
 
         elif command.startswith("open"):
             if "open it" == command or "open file" == command:

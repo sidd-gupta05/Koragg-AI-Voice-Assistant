@@ -40,7 +40,35 @@ DefaultMessage = f'''{Username} : Hello {Assistantname}, How are you?
 subprocesses = []
 image_generation_process = None
 image_generator = None
-Functions = ['open', "close", "play", "system", "content","google search", "youtube search", "screenshoot", "screenshot", "report", "message", "near me" ,"navigate to" ,"directions to","write", "draft", "compose", "make", "create", "type", "letter", "aplication","screen read", "read screen", "what's on", "whats on","solve this", "code this", "fix this", "fix the bug", "debug this", "read the problem", "solve the problem", "what's wrong", "whats wrong", "screen code", "help me code",]
+Functions = ['open', "close", "play", "system", "content","google search", "youtube search", "screenshoot", "screenshot", "report", "message", "near me" ,"navigate to" ,"directions to","write", "draft", "compose", "make", "create", "type", "letter", "aplication","screen read", "read screen", "what's on", "whats on","solve this", "code this", "fix this", "fix the bug", "debug this", "read the problem", "solve the problem", "what's wrong", "whats wrong", "screen code", "help me code","volume", "increase", "decrease", "reduce", "mute", "unmute"]
+
+def HandleVolumeIntent(Query: str) -> bool:
+    """
+    Intercepts volume commands instantly, bypassing the DMM router to 
+    prevent web searches, and perfectly executes the percentage adjustments.
+    """
+    query_lower = Query.lower().strip()
+    
+    # Check if the user is talking about volume or muting
+    if "volume" in query_lower or "mute" in query_lower:
+        from Backend.Automation import AdjustVolumeByPercentage, System
+        
+        if "unmute" in query_lower:
+            System("unmute")
+            answer = "Audio unmuted."
+        elif "mute" in query_lower:
+            System("mute")
+            answer = "Audio muted."
+        else:
+            answer = AdjustVolumeByPercentage(query_lower)
+            
+        SetAssistantStatus("Answering...")
+        ShowTextToScreen(f"{Assistantname} : {answer}")
+        TextToSpeech(answer)
+        SetAssistantStatus("Available...")
+        return True
+        
+    return False
 
 def HandleScreenIntent(Query: str) -> bool:
     """
@@ -292,6 +320,9 @@ def MainExecution():
         return True
 
     if HandleCreatorIntent(Query):
+        return True
+
+    if HandleVolumeIntent(Query):
         return True
     
     SetAssistantStatus("Thinking...")
