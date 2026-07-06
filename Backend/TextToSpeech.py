@@ -4,27 +4,31 @@ import random
 import asyncio
 import edge_tts
 import os
+import uuid  
 from dotenv import dotenv_values
 
 env_vars = dotenv_values(".env")
 AssistantVoice = env_vars.get("AssistantVoice")
 
-async def TextToAudioFile(text) -> None :
-    file_path = r"Data\speech.mp3"
-
+async def TextToAudioFile(text, file_path) -> None :
     if os.path.exists(file_path):
         os.remove(file_path)
 
     communication = edge_tts.Communicate(text, AssistantVoice, pitch='-1Hz', rate="-10%")
-    await communication.save(r'Data\speech.mp3')
+    await communication.save(file_path)
 
 def TTS(Text, func = lambda r=None : True):
+    unique_id = str(uuid.uuid4().hex)[:8]
+    audio_file = rf"Data\speech_{unique_id}.mp3"
+    
     while True:
         try:
-            asyncio.run(TextToAudioFile(Text))
-            pygame.mixer.init()
+            asyncio.run(TextToAudioFile(Text, audio_file))
+            
+            if not pygame.mixer.get_init():
+                pygame.mixer.init()
 
-            pygame.mixer.music.load(r"Data\speech.mp3")
+            pygame.mixer.music.load(audio_file)
             pygame.mixer.music.play()
 
             while pygame.mixer.music.get_busy():
@@ -36,15 +40,24 @@ def TTS(Text, func = lambda r=None : True):
         
         except Exception as e:
             print(f"Error in TTS: {e}")
+            break 
 
-        finally :
+        finally:
             try:
                 func(False)
-                pygame.mixer.music.stop()
-                pygame.mixer.quit()
+                
+                if pygame.mixer.get_init():
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.unload()
 
             except Exception as e:
                 print(f"Error in Finally block: {e}")
+                
+            try:
+                if os.path.exists(audio_file):
+                    os.remove(audio_file)
+            except Exception:
+                pass
 
 def TextToSpeech(Text, func=lambda r=None:True):
     Data = str(Text).split(".")
@@ -74,7 +87,6 @@ def TextToSpeech(Text, func=lambda r=None:True):
 
     if len(Data) > 4 and len(Text) >= 250:
         TTS(" ".join(Text.split(".")[0:2]) + ". " + random.choice(responses),func)
-
     else:
         TTS(Text, func)
 
